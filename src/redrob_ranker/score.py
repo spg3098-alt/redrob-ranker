@@ -52,6 +52,8 @@ def score_candidate(c: Dict[str, Any], semantic_sim: float
     else:
         shallow = False
 
+    base *= structured.self_assessment_penalty(c)
+
     ten_mult, n_short, avg_ten = structured.tenure_stability(c)
     base *= ten_mult
     bt_mult, bt_only = structured.big_tech_only(c)

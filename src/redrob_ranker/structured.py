@@ -162,6 +162,24 @@ def eval_text_evidence(c: Dict[str, Any]) -> float:
     return min(hits / 3.0, 1.0)
 
 
+_SELF_DOUBT_PHRASES = [
+    "still building depth",
+    "still learning",
+    "limited experience",
+    "not yet",
+    "relatively new to",
+    "early in my",
+]
+
+
+def self_assessment_penalty(c: Dict[str, Any]) -> float:
+    """Candidates who explicitly admit weakness in core areas get a small discount."""
+    summary = c.get("profile", {}).get("summary", "").lower()
+    if any(p in summary for p in _SELF_DOUBT_PHRASES):
+        return 0.85
+    return 1.0
+
+
 def shallow_llm_flag(c: Dict[str, Any]) -> bool:
     text = " ".join(
         [c.get("profile", {}).get("summary", "").lower()]
