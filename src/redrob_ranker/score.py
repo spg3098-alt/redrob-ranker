@@ -60,11 +60,18 @@ def score_candidate(c: Dict[str, Any], semantic_sim: float
     notice_mult = structured.notice_multiplier(c)
     base *= notice_mult
 
-    # ML-relevant YoE knockout gates.
+    # Junior title penalty.
+    cur_title = c.get("profile", {}).get("current_title", "").lower()
+    if "junior" in cur_title:
+        base *= 0.80
+
+    # ML-relevant YoE gates.
     if ml_yoe < 3:
         base *= 0.25
     elif ml_yoe < 4:
         base *= 0.60
+    elif ml_yoe < 5:
+        base *= 0.95
 
     # Core-coverage knockout: no relevant depth AND no eval evidence.
     if rel_detail["core_cov"] == 0 and eval_text < 0.33:
