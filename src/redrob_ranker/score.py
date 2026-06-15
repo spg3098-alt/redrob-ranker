@@ -70,11 +70,19 @@ def score_candidate(c: Dict[str, Any], semantic_sim: float
     if rel_detail["core_cov"] == 0 and eval_text < 0.33:
         base *= 0.30
 
+    # Thin must-have coverage penalty (exactly 1 of 4 core areas).
+    if rel_detail["core_cov"] <= 1:
+        base *= 0.70
+
     # Soft gate: not open to work right now.
     if not (c.get("redrob_signals", {}) or {}).get("open_to_work_flag", True):
         base *= 0.85
 
     behav_mult, behav_note = behavioral.modifier(c)
+    # Cap behavioral boost for candidates who don't cover the must-haves —
+    # brand-driven recruiter signals shouldn't override qualification gaps.
+    if rel_detail["core_cov"] <= 2:
+        behav_mult = min(behav_mult, 1.0)
     base *= behav_mult
 
     hp = honeypot.suspicion(c)
