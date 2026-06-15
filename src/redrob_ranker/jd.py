@@ -1,16 +1,6 @@
 """
 jd.py — The released job description, encoded as explicit, machine-readable
 requirements.
-
-This is the heart of the system. The challenge JD ("Senior AI Engineer —
-Founding Team") is deliberately written so that a keyword/embedding-only
-approach fails: it lists explicit *positive* signals, *nice-to-haves*, and
-*disqualifiers*, and the organizers planted keyword-stuffer traps and
-honeypots in the candidate pool. We therefore translate the prose JD into
-weighted feature logic rather than relying on similarity alone.
-
-Every constant here traces back to a specific line in job_description.docx,
-so the whole scorer is defensible in the Stage-5 interview.
 """
 
 # --- Title taxonomy --------------------------------------------------------
@@ -34,11 +24,8 @@ OTHER_TECH_TERMS = [
 ]
 
 TITLE_SCORE = {
-    "core": 1.00,
-    "data_science": 0.82,
-    "adjacent": 0.50,
-    "other_tech": 0.22,
-    "non_tech": 0.04,
+    "core": 1.00, "data_science": 0.82, "adjacent": 0.50,
+    "other_tech": 0.22, "non_tech": 0.04,
 }
 
 # --- Skill concept groups --------------------------------------------------
@@ -49,8 +36,7 @@ SKILL_GROUPS = {
     ]),
     "vectordb_search": (1.00, [
         "faiss", "pinecone", "weaviate", "qdrant", "milvus", "opensearch",
-        "elasticsearch", "bm25", "vector search", "hybrid search", "lucene",
-        "solr",
+        "elasticsearch", "bm25", "vector search", "hybrid search", "lucene", "solr",
     ]),
     "eval": (0.95, [
         "ndcg", "mrr", "map@", "a/b test", "ab test", "experimentation",
@@ -101,14 +87,33 @@ PREFERRED_CITIES = [
 FRAMEWORK_ENTHUSIAST_TERMS = ["langchain", "llamaindex", "autogpt", "crewai"]
 
 # --- Eval-framework evidence (text scan) -----------------------------------
-# JD lists NDCG/MRR/MAP/A-B testing as a hard must-have. Candidates often
-# cite these in summary/career prose rather than formal skill entries.
 EVAL_TEXT_TERMS = [
     "ndcg", "mrr", "map@", "a/b test", "ab test", "ab testing",
     "offline evaluation", "online evaluation", "ranking evaluation",
     "offline-online", "ranking metrics", "evaluation framework",
     "recall@", "precision@", "recall at", "dcg",
 ]
+
+# --- Must-have group coverage weights (sum to 1.0) -------------------------
+# Replaces integer core_cov/4. Eval carries most weight — hardest to fake.
+COVERAGE_WEIGHTS = {
+    "eval":                  0.30,
+    "retrieval_embeddings":  0.25,
+    "ranking_recsys":        0.20,
+    "vectordb_search":       0.15,
+    "ml_core":               0.10,
+}
+
+# --- Cross-group skill redundancy correlation ------------------------------
+# Candidates with both retrieval_embeddings AND vectordb_search skills were
+# getting additive credit for what is partly the same capability.
+SKILL_GROUP_CORR = {
+    ("retrieval_embeddings", "vectordb_search"): 0.65,
+    ("retrieval_embeddings", "ranking_recsys"):  0.45,
+    ("vectordb_search",      "ranking_recsys"):  0.40,
+    ("ml_core",              "llm"):             0.55,
+    ("eval",                 "ranking_recsys"):  0.50,
+}
 
 JD_TEXT = (
     "Senior AI Engineer founding team. Own the intelligence layer: ranking, "

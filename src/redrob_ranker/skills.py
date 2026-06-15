@@ -75,11 +75,20 @@ def relevance(c: Dict[str, Any]) -> Tuple[float, List[str], Dict[str, float]]:
             strong.append((contrib, s.get("name", "")))
 
     depth = sum(group_best.values())
+
+    # Cross-group redundancy: correlated skill pairs add diminishing returns.
+    for (g1, g2), corr in jd.SKILL_GROUP_CORR.items():
+        if g1 in group_best and g2 in group_best:
+            depth -= corr * min(group_best[g1], group_best[g2])
+    depth = max(0.0, depth)
+
     core_cov = sum(1 for g in CORE_GROUPS if group_best.get(g, 0) >= 0.4)
-    breadth = core_cov / len(CORE_GROUPS)
+    # Weighted breadth: eval carries more weight than ml_core (harder to fake).
+    breadth = sum(w for g, w in jd.COVERAGE_WEIGHTS.items()
+                  if group_best.get(g, 0) >= 0.4)
     assess_mag = (sum(assessed_rel) / len(assessed_rel)) if assessed_rel else 0.5
 
-    rel = 0.55 * (depth / 3.8) + 0.30 * breadth + 0.15 * assess_mag
+    rel = 0.55 * (depth / 3.0) + 0.30 * breadth + 0.15 * assess_mag
     rel = max(0.0, min(rel, 1.15))
 
     strong.sort(reverse=True)

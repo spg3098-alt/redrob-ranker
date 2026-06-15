@@ -8,8 +8,13 @@ def build(c: Dict[str, Any], parts: Dict[str, Any]) -> str:
     title = parts.get("title") or "Candidate"
     company = parts.get("company") or "?"
     yoe = p.get("years_of_experience", 0) or 0
+    ml_yoe = parts.get("ml_yoe", yoe)
 
-    seg: List[str] = [f"{title} at {company}, {yoe:.1f} yrs"]
+    yoe_str = f"{yoe:.1f} yrs total"
+    if ml_yoe < yoe - 1.5:
+        yoe_str += f" ({ml_yoe:.1f} yrs ML-relevant)"
+
+    seg: List[str] = [f"{title} at {company}, {yoe_str}"]
 
     cov = parts.get("core_cov", 0)
     strong = parts.get("strong_skills", [])

@@ -30,9 +30,28 @@ def title_fit(c: Dict[str, Any]) -> Tuple[float, str]:
     return score, cur_class
 
 
+_ML_TITLE_TERMS = (
+    jd.CORE_TITLE_TERMS + jd.DATA_SCIENCE_TERMS
+    + ["search engineer", "ranking", "recommendation", "recsys",
+       "nlp engineer", "applied scientist", "applied ml"]
+)
+
+
+def ml_relevant_yoe(c: Dict[str, Any]) -> float:
+    """Sum duration_months only from ML/AI/IR-titled roles."""
+    total_months = sum(
+        r.get("duration_months", 0) or 0
+        for r in c.get("career_history", [])
+        if any(t in r.get("title", "").lower() for t in _ML_TITLE_TERMS)
+    )
+    years = total_months / 12.0
+    stated = c.get("profile", {}).get("years_of_experience", 0) or 0
+    return years if years > 0 else stated
+
+
 def experience_fit(c: Dict[str, Any]) -> float:
-    """JD: range 5-9, IDEAL 6-8."""
-    y = c.get("profile", {}).get("years_of_experience", 0) or 0
+    """JD: range 5-9, IDEAL 6-8. Uses ML-relevant YoE, not total career."""
+    y = ml_relevant_yoe(c)
     if y < 2:   return 0.20
     if y < 4:   return 0.50
     if y < 5:   return 0.74
