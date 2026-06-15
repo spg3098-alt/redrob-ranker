@@ -100,6 +100,16 @@ PREFERRED_CITIES = [
 
 FRAMEWORK_ENTHUSIAST_TERMS = ["langchain", "llamaindex", "autogpt", "crewai"]
 
+# --- Eval-framework evidence (text scan) -----------------------------------
+# JD lists NDCG/MRR/MAP/A-B testing as a hard must-have. Candidates often
+# cite these in summary/career prose rather than formal skill entries.
+EVAL_TEXT_TERMS = [
+    "ndcg", "mrr", "map@", "a/b test", "ab test", "ab testing",
+    "offline evaluation", "online evaluation", "ranking evaluation",
+    "offline-online", "ranking metrics", "evaluation framework",
+    "recall@", "precision@", "recall at", "dcg",
+]
+
 JD_TEXT = (
     "Senior AI Engineer founding team. Own the intelligence layer: ranking, "
     "retrieval and matching systems deciding what recruiters see when they "

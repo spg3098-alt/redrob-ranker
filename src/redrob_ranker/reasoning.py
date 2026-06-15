@@ -1,12 +1,4 @@
-"""
-reasoning.py — Generate a specific, differentiated, honest `reasoning` string.
-
-Spec Stage 4 penalizes empty / identical / templated / hallucinated /
-rank-contradicting reasoning. We build each string only from facts in THAT
-candidate's profile and lead with what is distinctive about them (employer,
-seniority, the specific must-have groups they cover, assessment strength,
-tenure), then surface honest concerns. Nothing here invents a skill.
-"""
+"""reasoning.py — Generate specific, differentiated, honest reasoning strings."""
 
 from typing import Dict, Any, List
 
@@ -25,6 +17,12 @@ def build(c: Dict[str, Any], parts: Dict[str, Any]) -> str:
         seg.append(f"covers {cov}/4 must-have areas via {', '.join(strong[:3])}")
     else:
         seg.append("no verified retrieval/ranking depth")
+
+    et = parts.get("eval_text", 0)
+    if et >= 0.67:
+        seg.append("explicit eval-framework evidence (NDCG/MRR/A-B test) in profile")
+    elif et >= 0.33:
+        seg.append("some eval-framework language in profile")
 
     am = parts.get("assess_mag", 0)
     if am >= 0.8:
@@ -56,8 +54,9 @@ def build(c: Dict[str, Any], parts: Dict[str, Any]) -> str:
     if parts.get("behav_note"):
         concerns.append(parts["behav_note"])
     nd = parts.get("notice_days")
-    if nd and nd > 90:
-        concerns.append(f"notice {nd}d")
+    nm = parts.get("notice_mult", 1.0)
+    if nd and nd > 60:
+        concerns.append(f"notice {nd}d (×{nm:.2f} penalty)")
     if parts.get("domain_mismatch", 0) >= 0.6:
         concerns.append("CV/speech-heavy, light NLP/IR")
     if parts.get("consulting_mult", 1.0) < 0.7:
