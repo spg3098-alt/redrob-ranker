@@ -1,96 +1,88 @@
-# Redrob Hackathon — Submission Metadata Template
-#
-# Copy this file to your repo root as `submission_metadata.yaml` and fill it in.
-# The fields here should match what you submit via the portal at upload time.
-# Stage 3 review uses this file to verify your portal metadata.
+# Redrob Hackathon — Submission Metadata
 
 # ============================================================================
 # Team identity
 # ============================================================================
-team_name: "your-team-name-here"  # Used in leaderboard and announcements
+team_name: "spg3098_5915"
 
 primary_contact:
-  name: "Full Name"
-  email: "primary@example.com"   # Used for all organizer communication
-  phone: "+91-XXXXXXXXXX"        # Used for top-50 / top-10 outreach
+  name: "Shantanu Gawande"
+  email: "spg3098@gmail.com"
+  phone: "+918605301736"
 
 team_members:
-  - name: "Member 1 Full Name"
-    email: "member1@example.com"
-    role: "ML Engineer"          # Optional, e.g. "Team Lead", "Backend", "Data"
-  - name: "Member 2 Full Name"
-    email: "member2@example.com"
-    role: "Data Engineer"
-  # Add more members as needed; solo participants list just one member
+  - name: "Shantanu Gawande"
+    email: "spg3098@gmail.com"
+    role: "Solo Participant"
 
 # ============================================================================
 # Code and reproducibility
 # ============================================================================
-github_repo: "https://github.com/YOUR_USERNAME/YOUR_REPO"
-# Required. Must be reachable. Private repos OK if you can grant organizer
-# access at Stage 3 (the email to add will be communicated then).
+github_repo: "https://github.com/spg3098-alt/redrob-ranker"
 
-sandbox_link: "https://huggingface.co/spaces/YOUR_USERNAME/redrob-ranker"
-# Required. A working hosted environment where the ranker can be run on a small
-# candidate sample. See Section 10.5 of submission_spec.md for acceptable
-# platforms (HuggingFace Spaces, Streamlit Cloud, Replit, Colab, Docker, Binder).
+sandbox_link: "https://colab.research.google.com/github/spg3098-alt/redrob-ranker/blob/master/demo_colab.ipynb"
 
 reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
-# The single command that produces submission.csv from candidates.jsonl.
-# Should run end-to-end within 5 minutes on CPU with 16GB RAM and no network.
 
 # ============================================================================
 # Compute environment
 # ============================================================================
 compute:
-  platform: "MacBook Pro M2"                    # Or: "AWS EC2 c5.4xlarge", "Local Linux box", etc.
-  cpu_cores: 8                                  # Number of CPU cores used
-  ram_gb: 16                                    # Available RAM in GB
-  python_version: "3.11.4"                      # python --version
-  os: "macOS 14.2"                              # Or "Ubuntu 22.04 LTS", etc.
-  uses_gpu_for_inference: false                 # Must be false — see compute constraints
-  has_network_during_ranking: false             # Must be false — no API calls during ranking
-  pre_computation_required: false               # true if you pre-compute embeddings or train models offline
-  pre_computation_time_minutes: 0               # Approximate, if applicable
+  platform: "Windows 11, Local Machine"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.12"
+  os: "Windows 11 Home"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: false
+  pre_computation_time_minutes: 0
 
 # ============================================================================
 # AI tools declaration
 # ============================================================================
-# Transparency only — declared use is NOT penalized. Be honest. Stage 5 interview
-# may verify these declarations against your code; declarations that contradict
-# your code or your interview are flagged.
 ai_tools_used:
-  - "Claude"        # e.g. for architecture discussion, code review
-  - "GitHub Copilot"  # e.g. for autocomplete
-  # Other options: "ChatGPT", "Cursor", "Gemini", "Codeium", "Other", "None"
+  - "Claude"
 
 ai_usage_summary: |
-  Briefly describe how AI tools were used. Examples:
-  - "Used Claude for code review and architectural discussion. Used Copilot for autocomplete.
-     No candidate data was fed to any LLM."
-  - "Used ChatGPT to debug Python issues and Cursor for refactoring."
-  - "No AI tools used."
+  Used Claude (Claude Code) for architecture discussion, HOQ weight derivation,
+  and iterative code review across 7 commits. All engineering decisions, signal
+  selection, weight tuning, and candidate inspection were done by the participant.
+  No candidate data was fed to any hosted LLM during ranking — the ranking step
+  is fully offline, CPU-only, and makes zero external API calls.
 
 # ============================================================================
-# Approach summary (optional but recommended)
+# Approach summary
 # ============================================================================
 methodology_summary: |
-  ≤200 word summary of your approach. Strongly recommended.
+  Transparent hybrid ranker — no labels, no training, fully interpretable.
+  The JD is encoded as explicit weighted requirements in jd.py (skill groups,
+  must-have coverage weights, eval-framework terms). Final score = additive
+  blend × multiplicative gates × behavioral multiplier.
 
-  Example:
-  "Rule-based ranker with explicit reasoning capture. Five scoring components
-  (skills, title+career, experience years, location, education) combined with
-  a multiplicative behavioral-signal modifier. The title component is the
-  decisive signal against keyword-stuffer traps; an endorsement-and-duration
-  trust multiplier on skills catches lazy keyword stuffing. Runtime is ~10
-  seconds for 50K candidates on CPU."
+  Additive blend (weights sum to 1.0): title fit (0.22), trust-weighted skill
+  relevance (0.38), TF-IDF semantic similarity (0.14), ML-relevant YoE (0.10),
+  location (0.08), eval-text evidence (0.08).
+
+  Trust-weighted skills discount bare keyword claims by duration_months,
+  endorsements, and skill_assessment_scores — defeating stuffers. Cross-group
+  redundancy discount prevents double-counting correlated skills (e.g.
+  retrieval + vector-DB). Eval-text evidence scans prose for NDCG/MRR/A-B
+  terms — a rare signal that proxy-tests real evaluation depth.
+
+  Multiplicative gates: ML YoE <3y (×0.25), <4y (×0.60), 4-5y (×0.95);
+  core coverage ≤1/4 must-haves (×0.70); consulting-only career (×0.45);
+  junior title (×0.80); self-admission of weakness in summary (×0.85);
+  notice period (×0.65–1.00); behavioral composite (×0.40–1.00 capped at
+  1.0 for coverage ≤2). Honeypot sink pushes impossible profiles to ×0.03.
+  Runtime: ~90s on CPU for 100K candidates.
 
 # ============================================================================
 # Declarations
 # ============================================================================
 declarations:
-  read_submission_spec: true        # I have read submission_spec.md in full
-  code_is_original_work: true       # My code is my team's original work (using AI as a tool is fine)
-  no_collusion: true                # I have not coordinated my submission with other teams
-  honeypot_check_done: false        # OPTIONAL — set true if you explicitly checked for honeypots in your ranking
-  reproduction_tested: true         # I have tested that my reproduce_command runs end-to-end
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true

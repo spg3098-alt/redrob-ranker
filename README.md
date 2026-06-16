@@ -23,12 +23,25 @@ the JD prose into explicit, weighted scoring logic (`src/redrob_ranker/jd.py`)
 rather than relying on similarity alone. Each candidate's final score is:
 
 ```
-structured_fit  = 0.26*title + 0.30*skills_trust + 0.16*semantic
-                + 0.12*experience + 0.10*location + 0.06*notice  (+ nice-to-have)
-gated           = structured_fit  * domain_mismatch_penalty
-                                   * services_only_penalty
-                                   * shallow_llm_penalty
-final           = gated * behavioral_availability * honeypot_sink
+additive   = 0.22*title + 0.38*skills_trust + 0.14*semantic
+           + 0.10*ml_yoe_experience + 0.08*location + 0.08*eval_text_evidence
+           (+ nice-to-have bonus)
+
+gated      = additive
+           × domain_mismatch_penalty      # ×(1 - 0.45*dm) if CV/vision-heavy
+           × consulting_only_penalty      # ×0.45 if entire career at services firms
+           × shallow_llm_penalty          # ×0.80 if only framework calls, no IR depth
+           × tenure_stability             # ×0.80–1.04 based on job-hop pattern
+           × notice_multiplier            # ×0.65–1.00 by notice period days
+           × junior_title_penalty         # ×0.80 if "junior" in current title
+           × ml_yoe_gate                  # ×0.25/<3y, ×0.60/<4y, ×0.95/<5y
+           × core_coverage_gate           # ×0.30 if 0/4 + no eval text; ×0.70 if ≤1/4
+           × open_to_work_gate            # ×0.85 if not open to work
+           × self_assessment_penalty      # ×0.85 if summary admits weakness
+
+final      = gated
+           × behavioral_multiplier        # ×0.40–1.28 (capped at 1.0 if coverage ≤2/4)
+           × honeypot_sink                # ×0.03–0.50 for impossible profiles
 ```
 
 Component highlights:
